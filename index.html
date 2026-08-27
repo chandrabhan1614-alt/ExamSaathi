@@ -1,3 +1,486 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ExamSaathi</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f2f5f9;font-family:Arial,sans-serif;color:#222}
+header{background:#0756d6;color:#fff;text-align:center;padding:14px}
+header h1{margin:0;font-size:25px}
+header p{margin:4px 0 0}
+.page{max-width:700px;margin:auto;padding:10px}
+.screen{display:none}
+.screen.active{display:block}
+.card{background:#fff;border-radius:12px;padding:15px;margin-bottom:10px;box-shadow:0 2px 8px #0001}
+button{border:0;border-radius:8px;padding:13px;margin:5px 0;font-size:16px;font-weight:bold;cursor:pointer;width:100%}
+.blue{background:#0756d6;color:#fff}
+.orange{background:#f47700;color:#fff}
+.gray{background:#e5e9ef;color:#222}
+.lang{display:flex;gap:8px}
+.lang button{margin:0}
+.lang .selected{background:#0756d6;color:#fff}
+.top{position:sticky;top:0;z-index:10}
+.info{display:flex;justify-content:space-between;background:#fff;padding:10px;border-radius:9px;font-weight:bold}
+#timer{color:red}
+.palette{background:#fff;padding:8px;border-radius:9px;margin:8px 0}
+.paletteHead{font-size:13px;margin-bottom:5px;display:flex;justify-content:space-between}
+#palette{display:flex;flex-wrap:wrap;gap:3px}
+#palette button{width:27px;height:27px;padding:0;margin:0;font-size:11px;background:#e5e9ef}
+#palette button.done{background:#36a852;color:#fff}
+#palette button.now{outline:2px solid #0756d6}
+.subject{font-size:14px;color:#0756d6;font-weight:bold;margin-bottom:8px}
+.question{font-size:19px;font-weight:bold;line-height:1.45;margin-bottom:10px}
+.option{text-align:left;background:#f7f8fa;border:2px solid #ddd}
+.option.chosen{border-color:#0756d6;background:#e5edff}
+.nav{display:flex;gap:7px}
+.nav button{flex:1}
+.result{text-align:center}
+.score{font-size:46px;font-weight:bold;color:#f47700}
+.stat{padding:10px;background:#f1f4f7;margin:6px 0;border-radius:7px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🎯 ExamSaathi</h1>
+<p>Mock Test App</p>
+</header>
+
+<div class="page">
+
+<!-- HOME -->
+<section id="home" class="screen active">
+<div class="card">
+<h2>📚 परीक्षा चुनें</h2>
+<button class="blue" onclick="openExam('ssc')">SSC</button>
+<button class="blue" onclick="openExam('up')">UP Police</button>
+</div>
+</section>
+
+<!-- SSC -->
+<section id="ssc" class="screen">
+<div class="card">
+<button class="gray" onclick="go('home')">⬅ वापस</button>
+<h2>SSC</h2>
+<button class="orange" onclick="openTestList('SSC GD')">SSC GD</button>
+<button class="orange" onclick="alert('SSC CGL जल्द उपलब्ध होगा')">SSC CGL</button>
+<button class="orange" onclick="alert('SSC CHSL जल्द उपलब्ध होगा')">SSC CHSL</button>
+</div>
+</section>
+
+<!-- UP POLICE -->
+<section id="up" class="screen">
+<div class="card">
+<button class="gray" onclick="go('home')">⬅ वापस</button>
+<h2>UP Police</h2>
+<button class="orange" onclick="alert('UP Police Constable जल्द उपलब्ध होगा')">Constable</button>
+<button class="orange" onclick="alert('UP Police SI जल्द उपलब्ध होगा')">SI</button>
+</div>
+</section>
+
+<!-- TEST LIST -->
+<section id="tests" class="screen">
+<div class="card">
+<button class="gray" onclick="go('ssc')">⬅ वापस</button>
+<h2 id="examTitle">SSC GD</h2>
+
+<p><b>भाषा चुनें / Select Language</b></p>
+
+<div class="lang">
+<button id="hindiBtn" class="selected" onclick="language='hi';selectLang()">हिंदी</button>
+<button id="englishBtn" onclick="language='en';selectLang()">English</button>
+</div>
+
+<p>📝 80 Questions &nbsp; | &nbsp; ⏱️ 60 Minutes</p>
+
+<button class="orange" onclick="start(1)">Mock Test 1</button>
+<button class="orange" onclick="start(2)">Mock Test 2</button>
+<button class="orange" onclick="start(3)">Mock Test 3</button>
+</div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="screen">
+
+<div class="top">
+
+<div class="info">
+<span id="qno">Question 1/80</span>
+<span id="timer">60:00</span>
+</div>
+
+<div class="palette">
+<div class="paletteHead">
+<span>Question Palette</span>
+<span id="count">0/80</span>
+</div>
+<div id="palette"></div>
+</div>
+
+</div>
+
+<div class="card">
+
+<div id="subject" class="subject"></div>
+
+<div id="question" class="question"></div>
+
+<div id="options"></div>
+
+</div>
+
+<div class="nav">
+<button class="gray" onclick="prev()">⬅ Previous</button>
+<button class="blue" onclick="next()">Next ➡</button>
+</div>
+
+<button class="orange" onclick="submitTest()">✅ Submit Test</button>
+
+</section>
+
+<!-- RESULT -->
+<section id="result" class="screen">
+<div class="card result">
+
+<h2>🏆 Test Result</h2>
+
+<div id="score" class="score">0/80</div>
+
+<div id="correct" class="stat"></div>
+<div id="wrong" class="stat"></div>
+<div id="skip" class="stat"></div>
+<div id="percent" class="stat"></div>
+
+<button class="orange" onclick="reattempt()">🔄 Reattempt</button>
+<button class="blue" onclick="go('tests')">📚 Other Tests</button>
+<button class="gray" onclick="go('home')">🏠 Home</button>
+
+</div>
+</section>
+
+</div>
+
+<script>
+
+/* ===============================
+APP VARIABLES
+================================ */
+
+let language="hi";
+let current=0;
+let selectedTest=1;
+let questions=[];
+let answers=[];
+let time=3600;
+let timer=null;
+
+
+/* ===============================
+QUESTION MAKER
+================================ */
+
+  function makeQuestions(test){
+
+const sets={
+
+1:[
+["Reasoning","श्रृंखला में अगली संख्या क्या होगी? 2, 4, 8, 16, ?",["24","28","32","36"],2,"What is the next number? 2, 4, 8, 16, ?",["24","28","32","36"]],
+["Reasoning","यदि CAT को DBU लिखा जाए, तो DOG को क्या लिखा जाएगा?",["EPH","EOH","FPH","DPG"],0,"If CAT is coded as DBU, how is DOG coded?",["EPH","EOH","FPH","DPG"]],
+["Reasoning","5, 10, 20, 40, ?",["60","70","80","90"],2,"5, 10, 20, 40, ?",["60","70","80","90"]],
+["Reasoning","एक पंक्ति में राम बाएं से 10वें और दाएं से 15वें स्थान पर है। कुल कितने व्यक्ति हैं?",["23","24","25","26"],1,"Ram is 10th from left and 15th from right. How many persons are there?",["23","24","25","26"]],
+["Reasoning","विषम संख्या चुनिए।",["12","18","25","30"],2,"Choose the odd one out.",["12","18","25","30"]],
+["Reasoning","3, 6, 11, 18, ?",["25","27","29","31"],1,"3, 6, 11, 18, ?",["25","27","29","31"]],
+["Reasoning","यदि आज सोमवार है, तो 10 दिन बाद कौन सा दिन होगा?",["बुधवार","गुरुवार","शुक्रवार","शनिवार"],1,"If today is Monday, what day will it be after 10 days?",["Wednesday","Thursday","Friday","Saturday"]],
+["Reasoning","A, C, F, J, ?",["M","N","O","P"],2,"A, C, F, J, ?",["M","N","O","P"]],
+["Reasoning","पुस्तक : पढ़ना :: भोजन : ?",["पकाना","खाना","पीना","बेचना"],1,"Book : Read :: Food : ?",["Cook","Eat","Drink","Sell"]],
+["Reasoning","8, 16, 32, 64, ?",["96","112","128","144"],2,"8, 16, 32, 64, ?",["96","112","128","144"]],
+
+["GK / GS","भारत की राजधानी क्या है?",["मुंबई","नई दिल्ली","कोलकाता","जयपुर"],1,"What is the capital of India?",["Mumbai","New Delhi","Kolkata","Jaipur"]],
+["GK / GS","भारत का राष्ट्रीय पशु कौन है?",["सिंह","बाघ","हाथी","गैंडा"],1,"What is the national animal of India?",["Lion","Tiger","Elephant","Rhino"]],
+["GK / GS","भारतीय संविधान कब लागू हुआ?",["15 अगस्त 1947","26 जनवरी 1950","26 नवंबर 1949","2 अक्टूबर 1950"],1,"When did the Constitution of India come into force?",["15 August 1947","26 January 1950","26 November 1949","2 October 1950"]],
+["GK / GS","भारत का राष्ट्रीय पक्षी कौन है?",["मोर","तोता","हंस","कबूतर"],0,"What is the national bird of India?",["Peacock","Parrot","Swan","Pigeon"]],
+["GK / GS","उत्तर प्रदेश की राजधानी क्या है?",["कानपुर","वाराणसी","लखनऊ","आगरा"],2,"What is the capital of Uttar Pradesh?",["Kanpur","Varanasi","Lucknow","Agra"]],
+["GK / GS","जल का रासायनिक सूत्र क्या है?",["CO2","H2O","O2","NaCl"],1,"What is the chemical formula of water?",["CO2","H2O","O2","NaCl"]],
+["GK / GS","सौरमंडल का सबसे बड़ा ग्रह कौन सा है?",["पृथ्वी","शनि","बृहस्पति","मंगल"],2,"Which is the largest planet in the Solar System?",["Earth","Saturn","Jupiter","Mars"]],
+["GK / GS","भारत का राष्ट्रीय फूल कौन सा है?",["गुलाब","कमल","गेंदा","चमेली"],1,"What is the national flower of India?",["Rose","Lotus","Marigold","Jasmine"]],
+["GK / GS","गणतंत्र दिवस कब मनाया जाता है?",["15 अगस्त","26 जनवरी","2 अक्टूबर","14 नवंबर"],1,"When is Republic Day celebrated?",["15 August","26 January","2 October","14 November"]],
+["GK / GS","मानव शरीर में रक्त पंप करने वाला अंग कौन सा है?",["फेफड़ा","हृदय","यकृत","गुर्दा"],1,"Which organ pumps blood in the human body?",["Lung","Heart","Liver","Kidney"]],
+
+["Maths","25 + 35 = ?",["50","60","70","80"],1,"25 + 35 = ?",["50","60","70","80"]],
+["Maths","144 का वर्गमूल क्या है?",["10","11","12","14"],2,"What is the square root of 144?",["10","11","12","14"]],
+["Maths","200 का 15% कितना है?",["20","30","40","50"],1,"What is 15% of 200?",["20","30","40","50"]],
+["Maths","18 × 5 = ?",["80","90","100","110"],1,"18 × 5 = ?",["80","90","100","110"]],
+["Maths","3/4 का दशमलव रूप क्या है?",["0.25","0.50","0.75","1.25"],2,"What is the decimal form of 3/4?",["0.25","0.50","0.75","1.25"]],
+["Maths","12 और 18 का HCF क्या है?",["3","6","9","12"],1,"What is the HCF of 12 and 18?",["3","6","9","12"]],
+["Maths","5 का घन क्या है?",["25","75","100","125"],3,"What is the cube of 5?",["25","75","100","125"]],
+["Maths","एक वर्ग की भुजा 6 cm है। क्षेत्रफल कितना होगा?",["24","30","36","42"],2,"A square has side 6 cm. What is its area?",["24","30","36","42"]],
+["Maths","60 ÷ 5 = ?",["10","12","15","20"],1,"60 ÷ 5 = ?",["10","12","15","20"]],
+["Maths","₹500 का 20% कितना है?",["₹50","₹75","₹100","₹125"],2,"What is 20% of ₹500?",["₹50","₹75","₹100","₹125"]],
+
+["Language","'सुंदर' का विलोम क्या है?",["अच्छा","कुरूप","सरल","मधुर"],1,"What is the antonym of Beautiful?",["Good","Ugly","Simple","Sweet"]],
+["Language","'जल' का पर्यायवाची क्या है?",["अग्नि","पवन","नीर","धरती"],2,"What is a synonym of Water?",["Fire","Wind","Water","Earth"]],
+["Language","'दिन' का विलोम क्या है?",["सुबह","रात","दोपहर","शाम"],1,"What is the antonym of Day?",["Morning","Night","Afternoon","Evening"]],
+["Language","'सूर्य' का पर्यायवाची क्या है?",["रवि","चंद्र","पवन","जल"],0,"What is a synonym of Sun?",["Ravi","Moon","Wind","Water"]],
+["Language","'ईमानदार' का विलोम क्या है?",["सच्चा","बेईमान","सरल","नम्र"],1,"What is the antonym of Honest?",["Truthful","Dishonest","Simple","Humble"]],
+["Language","'आकाश' का पर्यायवाची क्या है?",["गगन","पाताल","सागर","वन"],0,"What is a synonym of Sky?",["Sky","Underworld","Sea","Forest"]],
+["Language","'लड़का' का स्त्रीलिंग क्या है?",["लड़की","बालक","नारी","बच्चा"],0,"What is the feminine form of Boy?",["Girl","Boy","Woman","Child"]],
+["Language","'राजा' का स्त्रीलिंग क्या है?",["रानी","राजकुमारी","स्त्री","माता"],0,"What is the feminine form of King?",["Queen","Princess","Woman","Mother"]],
+["Language","'सत्य' का विलोम क्या है?",["न्याय","असत्य","धर्म","सही"],1,"What is the antonym of Truth?",["Justice","Falsehood","Religion","Right"]],
+["Language","'मित्र' का विलोम क्या है?",["सखा","शत्रु","दोस्त","सहायक"],1,"What is the antonym of Friend?",["Friend","Enemy","Friend","Helper"]]
+],
+
+2:[],
+3:[]
+};
+
+/* Test 2 और Test 3 के लिए अलग प्रश्न
+   अभी Test 1 का पूरा working bank इस्तेमाल किया जा रहा है,
+   लेकिन questions को test number के अनुसार अलग किया गया है। */
+
+if(test===2 || test===3){
+
+let base=sets[1].slice();
+
+if(test===2){
+
+base=base.map((q,i)=>{
+
+let x=[...q];
+
+if(i<10){
+
+x[1]=[
+"4, 8, 12, 16, ?",
+"10, 20, 30, 40, ?",
+"2, 6, 18, 54, ?",
+"7, 14, 21, 28, ?",
+"100, 90, 80, 70, ?",
+"1, 4, 9, 16, ?",
+"5, 10, 15, 20, ?",
+"81, 27, 9, 3, ?",
+"3, 9, 27, 81, ?",
+"11, 22, 33, 44, ?"
+][i];
+
+x[2]=[
+["20","22","24","26"],
+["45","50","55","60"],
+["108","162","216","270"],
+["30","35","36","42"],
+["50","55","60","65"],
+["20","24","25","36"],
+["22","25","30","35"],
+["0","1","2","6"],
+["108","162","243","324"],
+["50","55","60","66"]
+][i];
+
+x[3]=[
+2,1,1,1,2,2,1,1,2,1
+][i];
+
+}
+
+return x;
+
+});
+
+}
+
+if(test===3){
+
+base=base.map((q,i)=>{
+
+let x=[...q];
+
+if(i<10){
+
+x[1]=[
+"6, 12, 18, 24, ?",
+"15, 30, 45, 60, ?",
+"3, 6, 12, 24, ?",
+"9, 18, 27, 36, ?",
+"50, 45, 40, 35, ?",
+"2, 5, 8, 11, ?",
+"8, 16, 24, 32, ?",
+"90, 80, 70, 60, ?",
+"20, 25, 30, 35, ?",
+"12, 24, 36, 48, ?"
+][i];
+
+x[2]=[
+["28","30","32","36"],
+["65","70","75","80"],
+["36","42","48","54"],
+["40","45","48","54"],
+["25","30","32","40"],
+["12","13","14","15"],
+["36","40","42","48"],
+["40","45","50","55"],
+["40","45","50","55"],
+["54","60","64","72"]
+][i];
+
+x[3]=[
+1,1,2,1,1,1,1,2,2,1
+][i];
+
+}
+
+return x;
+
+});
+
+}
+
+return base.map(q=>({
+
+subject:q[0],
+
+hi:{
+q:q[1],
+o:q[2]
+},
+
+en:{
+q:q[4],
+o:q[5]
+},
+
+a:q[3]
+
+}));
+
+}
+
+return arr;
+}
+
+
+/* ===============================
+SCREENS
+================================ */
+
+function go(id){
+
+document.querySelectorAll(".screen").forEach(function(x){
+x.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+window.scrollTo(0,0);
+}
+
+
+function openExam(id){
+go(id);
+}
+
+
+function openTestList(name){
+
+document.getElementById("examTitle").innerText=name;
+go("tests");
+
+}
+
+
+function selectLang(){
+
+document.getElementById("hindiBtn").classList.toggle("selected",language==="hi");
+document.getElementById("englishBtn").classList.toggle("selected",language==="en");
+
+}
+
+
+/* ===============================
+START
+================================ */
+
+function start(test){
+
+selectedTest=test;
+
+questions=makeQuestions(test);
+
+answers=new Array(80).fill(null);
+
+current=0;
+
+time=3600;
+
+go("quiz");
+
+createPalette();
+
+showQuestion();
+
+clearInterval(timer);
+
+timer=setInterval(function(){
+
+time--;
+
+showTime();
+
+if(time<=0){
+
+clearInterval(timer);
+
+submitTest();
+
+}
+
+},1000);
+
+showTime();
+
+}
+
+
+/* ===============================
+QUESTION
+================================ */
+
+function showQuestion(){
+
+let q=questions[current];
+
+let data=language==="hi"?q.hi:q.en;
+
+document.getElementById("qno").innerText=
+"Question "+(current+1)+"/80";
+
+document.getElementById("subject").innerText=
+"📚 "+q.subject;
+
+document.getElementById("question").innerText=data.q;
+
+let box=document.getElementById("options");
+
+box.innerHTML="";
+
+data.o.forEach(function(text,index){
+
+let b=document.createElement("button");
+
+b.className="option";
+
+if(answers[current]===index)
+b.classList.add("chosen");
+
+b.innerText=
+String.fromCharCode(65+index)+". "+text;
+
+b.onclick=function(){
+
+answers[current]=index;
+
+showQuestion();
 
 };
 
@@ -181,4 +664,4 @@ start(selectedTest);
 </script>
 
 </body>
-</html>   
+</html>
