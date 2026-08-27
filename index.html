@@ -1,425 +1,184 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exam Master</title>
 
-<style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Arial,sans-serif;
+};
+
+box.appendChild(b);
+
+});
+
+updatePalette();
+
 }
 
-body{
-    background:#f3f6fb;
-    color:#222;
+
+/* ===============================
+PALETTE
+================================ */
+
+function createPalette(){
+
+let p=document.getElementById("palette");
+
+p.innerHTML="";
+
+for(let i=0;i<80;i++){
+
+let b=document.createElement("button");
+
+b.innerText=i+1;
+
+b.onclick=function(){
+
+current=i;
+
+showQuestion();
+
+};
+
+p.appendChild(b);
+
 }
 
-header{
-    background:linear-gradient(135deg,#0756d6,#003b9b);
-    color:white;
-    text-align:center;
-    padding:24px 15px;
-    border-radius:0 0 25px 25px;
 }
 
-.logo{
-    font-size:27px;
-    font-weight:bold;
+
+function updatePalette(){
+
+let buttons=document.querySelectorAll("#palette button");
+
+let done=0;
+
+buttons.forEach(function(b,i){
+
+b.classList.remove("done","now");
+
+if(answers[i]!==null){
+
+b.classList.add("done");
+done++;
+
 }
 
-header p{
-    margin-top:7px;
-    font-size:14px;
+if(i===current)
+b.classList.add("now");
+
+});
+
+document.getElementById("count").innerText=done+"/80";
+
 }
 
-.page{
-    display:none;
-    padding:20px;
-    max-width:650px;
-    margin:auto;
+
+/* ===============================
+NEXT PREVIOUS
+================================ */
+
+function next(){
+
+if(current<79){
+
+current++;
+showQuestion();
+
+}else{
+
+alert("यह अंतिम प्रश्न है। Submit Test दबाएँ।");
+
 }
 
-.page.active{
-    display:block;
 }
 
-.hero,.card,.question-box,.result-box{
-    background:white;
-    padding:22px;
-    border-radius:18px;
-    margin-bottom:20px;
-    box-shadow:0 5px 18px rgba(0,0,0,.07);
+
+function prev(){
+
+if(current>0){
+
+current--;
+showQuestion();
+
+}else{
+
+alert("यह पहला प्रश्न है।");
+
 }
 
-.hero h1{
-    font-size:25px;
-    line-height:1.4;
 }
 
-.hero span{
-    color:#0756d6;
+
+/* ===============================
+TIMER
+================================ */
+
+function showTime(){
+
+let m=Math.floor(time/60);
+let s=time%60;
+
+document.getElementById("timer").innerText=
+String(m).padStart(2,"0")+":"+
+String(s).padStart(2,"0");
+
 }
 
-.hero p{
-    margin-top:10px;
-    color:#666;
-    line-height:1.5;
+
+/* ===============================
+SUBMIT
+================================ */
+
+function submitTest(){
+
+clearInterval(timer);
+
+let correct=0;
+let wrong=0;
+let skipped=0;
+
+for(let i=0;i<80;i++){
+
+if(answers[i]===null){
+
+skipped++;
+
+}else if(answers[i]===questions[i].a){
+
+correct++;
+
+}else{
+
+wrong++;
+
 }
 
-.title{
-    margin:20px 0 15px;
 }
 
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
+let percentage=Math.round(correct/80*100);
+
+document.getElementById("score").innerText=
+correct+"/80";
+
+document.getElementById("correct").innerText=
+"✅ सही उत्तर: "+correct;
+
+document.getElementById("wrong").innerText=
+"❌ गलत उत्तर: "+wrong;
+
+document.getElementById("skip").innerText=
+"⏭️ छोड़े गए: "+skipped;
+
+document.getElementById("percent").innerText=
+"📊 प्रतिशत: "+percentage+"%";
+
+go("result");
+
 }
 
-.card{
-    text-align:center;
-    cursor:pointer;
-    transition:.2s;
+
+function reattempt(){
+
+start(selectedTest);
+
 }
 
-.card:active{
-    transform:scale(.96);
-}
+</script>
 
-.icon{
-    font-size:40px;
-    margin-bottom:10px;
-}
-
-.card h3{
-    color:#0756d6;
-    margin-bottom:6px;
-}
-
-.card p{
-    color:#777;
-    font-size:13px;
-}
-
-.subject{
-    padding:20px 10px;
-}
-
-.subject .icon{
-    font-size:30px;
-}
-
-button{
-    border:0;
-    border-radius:12px;
-    padding:14px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.back{
-    background:#0756d6;
-    color:white;
-    margin-bottom:15px;
-}
-
-.start{
-    background:#ff7a00;
-    color:white;
-    width:100%;
-}
-
-.info{
-    display:flex;
-    justify-content:space-between;
-    background:white;
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:12px;
-    font-weight:bold;
-}
-
-#timer{
-    color:#e53935;
-}
-
-.question-no{
-    display:inline-block;
-    background:#0756d6;
-    color:white;
-    padding:9px 13px;
-    border-radius:9px;
-    margin-bottom:12px;
-    font-size:14px;
-}
-
-.question-box h2{
-    font-size:19px;
-    line-height:1.5;
-    margin-bottom:15px;
-}
-
-.option{
-    width:100%;
-    display:block;
-    text-align:left;
-    background:#f7f8fa;
-    border:2px solid #e0e4e8;
-    margin-top:10px;
-    color:#222;
-}
-
-.option.correct{
-    background:#d4edda;
-    border-color:#28a745;
-}
-
-.option.wrong{
-    background:#f8d7da;
-    border-color:#dc3545;
-}
-
-#next{
-    width:100%;
-    background:#ff7a00;
-    color:white;
-}
-
-.result-box{
-    text-align:center;
-}
-
-.trophy{
-    font-size:55px;
-}
-
-.score{
-    font-size:42px;
-    color:#ff7a00;
-    font-weight:bold;
-    margin:15px;
-}
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-    margin:20px 0;
-}
-
-.stats div{
-    background:#f5f7fa;
-    padding:12px 5px;
-    border-radius:10px;
-}
-
-.stats strong{
-    display:block;
-    color:#0756d6;
-    font-size:22px;
-}
-
-.stats span{
-    font-size:12px;
-    color:#666;
-}
-
-.home{
-    background:#0756d6;
-    color:white;
-    width:100%;
-    margin-top:10px;
-}
-
-.history{
-    background:white;
-    padding:18px;
-    border-radius:16px;
-    margin-top:25px;
-}
-
-.history h3{
-    color:#0756d6;
-    margin-bottom:8px;
-}
-
-footer{
-    text-align:center;
-    color:#888;
-    font-size:12px;
-    padding:25px;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-    <div class="logo">🎯 Exam Master</div>
-    <p>आपकी तैयारी • आपकी सफलता</p>
-</header>
-
-
-<!-- HOME -->
-
-<section id="home" class="page active">
-
-    <div class="hero">
-        <h1>
-            Mock Test देकर
-            <span>तैयारी जांचें</span>
-        </h1>
-
-        <p>
-            SSC और UP Police की तैयारी के लिए
-            Free Mock Tests
-        </p>
-    </div>
-
-    <h2 class="title">🎓 परीक्षा चुनें</h2>
-
-    <div class="grid">
-
-        <div class="card" onclick="openSubjects('SSC')">
-            <div class="icon">📚</div>
-            <h3>SSC</h3>
-            <p>GD • CGL • CHSL</p>
-        </div>
-
-        <div class="card" onclick="openSubjects('UP Police')">
-            <div class="icon">👮</div>
-            <h3>UP Police</h3>
-            <p>Constable • SI</p>
-        </div>
-
-    </div>
-
-    <div class="history">
-        <h3>📊 Last Attempt</h3>
-        <p id="last">अभी कोई टेस्ट नहीं दिया गया।</p>
-    </div>
-
-</section>
-
-
-<!-- SUBJECT -->
-
-<section id="subjects" class="page">
-
-    <button class="back" onclick="showPage('home')">
-        ← वापस जाएं
-    </button>
-
-    <h2 class="title">📚 Subject चुनें</h2>
-
-    <p id="examName"></p>
-
-    <br>
-
-    <div class="grid">
-
-        <div class="card subject" onclick="beginTest('GK')">
-            <div class="icon">🌎</div>
-            <h3>General Knowledge</h3>
-        </div>
-
-        <div class="card subject" onclick="beginTest('GS')">
-            <div class="icon">🔬</div>
-            <h3>General Science</h3>
-        </div>
-
-        <div class="card subject" onclick="beginTest('Math')">
-            <div class="icon">🔢</div>
-            <h3>Mathematics</h3>
-        </div>
-
-        <div class="card subject" onclick="beginTest('Reasoning')">
-            <div class="icon">🧠</div>
-            <h3>Reasoning</h3>
-        </div>
-
-        <div class="card subject" onclick="beginTest('Hindi')">
-            <div class="icon">📖</div>
-            <h3>Hindi</h3>
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- TEST -->
-
-<section id="test" class="page">
-
-    <div class="info">
-        <span id="testTitle">Mock Test</span>
-        <span id="timer">10:00</span>
-    </div>
-
-    <div class="question-no" id="qno">
-        Question 1/10
-    </div>
-
-    <div class="question-box">
-
-        <h2 id="question"></h2>
-
-        <div id="options"></div>
-
-    </div>
-
-    <button id="next" onclick="nextQuestion()">
-        Next Question →
-    </button>
-
-</section>
-
-
-<!-- RESULT -->
-
-<section id="result" class="page">
-
-    <div class="result-box">
-
-        <div class="trophy">🏆</div>
-
-        <h2>Test Complete!</h2>
-
-        <div class="score" id="score">
-            0 / 10
-        </div>
-
-        <div class="stats">
-
-            <div>
-                <strong id="correct">0</strong>
-                <span>सही</span>
-            </div>
-
-            <div>
-                <strong id="wrong">0</strong>
-                <span>गलत</span>
-            </div>
-
-            <div>
-                <strong id="skip">0</strong>
-                <span>छोड़े</span>
-            </div>
-
-        </div>
-
-        <h3 id="percentage"></h3>
-
-        <br>
-
-        <button class="home" onclick="showPage('home')">
-            🏠 Home
-        </button>
-
-   
+</body>
+</html>   
